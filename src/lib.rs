@@ -47,11 +47,8 @@ impl<T> Board<T> {
         }
     }
 
-    pub fn clear_field(&mut self, position: Position) -> Option<()> {
-        match self.values.remove(&position) {
-            None => None,
-            Some(_) => Some(())
-        }
+    pub fn clear_field(&mut self, position: Position) -> Option<T> {
+        self.values.remove(&position)
     }
 
     pub fn iter(&self) -> BoardIter<'_, T> {
@@ -327,11 +324,49 @@ mod tests {
         assert_eq!(board.dimension, Dimension::new(5, 5));
     }
 
-    fn clear_field_works() {}
+    /// If the field at the target position is not empty a set_field call should overwrite its value.
+    #[test]
+    fn set_field_existing_works() {
+        let mut board = Board::<usize>::new(Dimension::new(3, 3));
+        let pos = Position::new(0, 0);
+
+        assert_eq!(None, board.get_field(pos));
+
+        board.set_field(pos, 42);
+        assert_eq!(Some(&42), board.get_field(pos));
+
+        board.set_field(pos, 43);
+        assert_eq!(Some(&43), board.get_field(pos));
+    }
+
+    /// A field should be cleared by Board::clear_field.
+    /// If the field was empty before, nothing should happen.
+    #[test]
+    fn clear_field_works() {
+        let mut board = Board::<usize>::new(Dimension::new(3, 3));
+        let pos = Position::new(0, 0);
+        assert_eq!(None, board.get_field(pos));
+
+        board.set_field(pos, 42);
+        assert_eq!(Some(&42), board.get_field(pos));
+
+        assert_eq!(Some(42), board.clear_field(pos))
+    }
 
     #[test]
     fn clear_works() {
-        let mut board = Board::<()>::new(Dimension::new(3, 3));
+        let mut board = Board::<usize>::new(Dimension::new(3, 3));
+        let pos_a = Position::new(0, 0);
+        let pos_b = Position::new(1, 1);
+
+        board.set_field(pos_a, 42);
+        assert_eq!(Some(&42), board.get_field(pos_a));
+        board.set_field(pos_b, 43);
+        assert_eq!(Some(&43), board.get_field(pos_b));
+
+        board.clear();
+        assert_eq!(None, board.get_field(pos_a));
+        assert_eq!(None, board.get_field(pos_b));
     }
 
     #[test]
